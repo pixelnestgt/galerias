@@ -133,6 +133,31 @@
   .panel .send .btn{justify-content:center;padding:15px}
   .panel .msg{font-size:13px;color:var(--muted);min-height:18px;text-align:center}
 
+  /* ---------- Selección para descargar ---------- */
+  .check{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.28);display:none;align-items:center;justify-content:center;pointer-events:none}
+  .check svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.6;opacity:0}
+  .sel-mode .check{display:flex}
+  .sel-mode .tile{cursor:pointer}
+  .sel-mode .heart{display:none}
+  .tile.picked .check{background:var(--ink)}
+  .tile.picked .check svg{opacity:1}
+  .tile.picked img{transform:scale(.93)}
+  .tile.picked{background:#d9d5cd}
+  .selbar{position:fixed;left:50%;bottom:18px;transform:translate(-50%,160%);z-index:60;background:var(--ink);color:#fff;display:flex;align-items:center;gap:2px;padding:6px 6px 6px 18px;box-shadow:0 12px 40px rgba(0,0,0,.28);transition:transform .3s ease;width:max-content;max-width:calc(100% - 20px)}
+  .selbar.show{transform:translate(-50%,0)}
+  .selbar .count{font-size:13px;margin-right:10px;white-space:nowrap}
+  .selbar button{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding:12px 12px;color:#fff;white-space:nowrap}
+  .selbar button.primary{background:#fff;color:var(--ink)}
+  .selbar button:disabled{opacity:.4}
+  .progress{position:fixed;inset:0;z-index:150;background:rgba(244,242,238,.96);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+  .progress.show{display:flex}
+  .progress h3{font-family:var(--serif);font-weight:400;font-size:30px}
+  .progress p{color:var(--muted);font-size:14px;line-height:1.6;max-width:380px}
+  .progress .barwrap{width:min(320px,80vw);height:2px;background:var(--line)}
+  .progress .barfill{height:100%;width:0;background:var(--ink);transition:width .25s}
+  .progress .vids{display:flex;flex-direction:column;gap:8px}
+  @media (max-width:560px){ .selbar{left:10px;right:10px;width:auto;transform:translateY(160%)} .selbar.show{transform:none} .selbar .count{margin-right:auto} }
+
   .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 20px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:200}
   .toast.show{opacity:1;transform:translate(-50%,0)}
   .drawer.open ~ .toast{bottom:auto;top:24px}
@@ -152,7 +177,7 @@
     <span class="name" id="lbName"></span>
     <div class="lb-tools">
       <button id="lbFav" title="Agregar a mi selección"><svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg></button>
-      <a id="lbDl" title="Descargar" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg></a>
+      <button id="lbDl" title="Descargar"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg></button>
       <button id="lbClose" title="Cerrar (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
   </div>
@@ -175,6 +200,21 @@
       <div class="msg" id="selMsg"></div>
     </div>
   </div>
+</div>
+
+<div class="selbar" id="selbar">
+  <span class="count" id="pickCount">0 seleccionadas</span>
+  <button id="pickAll">Todas</button>
+  <button class="primary" id="pickDl" disabled>Descargar</button>
+  <button id="pickCancel" aria-label="Salir de selección">✕</button>
+</div>
+
+<div class="progress" id="progress">
+  <h3 id="progTitle">Preparando descarga</h3>
+  <div class="barwrap"><div class="barfill" id="progFill"></div></div>
+  <p id="progText"></p>
+  <div class="vids" id="progVids"></div>
+  <button class="btn" id="progClose" style="display:none">Cerrar</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -217,7 +257,9 @@ var BOOT = {
   var ICON = {
     heart:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg>',
     dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>',
-    play:'<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>'
+    play:'<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/></svg>',
+    tick:'<svg viewBox="0 0 24 24"><path d="m5.5 12.5 4.2 4.2 8.8-9"/></svg>'
   };
 
   /* ---------- Carga ---------- */
@@ -286,8 +328,9 @@ var BOOT = {
     h += '<div class="bar"><div class="bar-in">' + brandHtml() + '<nav class="tabs">';
     if (multi) d.sections.forEach(function(s, i){ h += '<a href="#sec-' + i + '" target="_self" data-sec="' + i + '">' + esc(s.title || 'Galería') + '</a>'; });
     h += '</nav><div class="actions">';
+    if (d.downloads) h += '<button class="btn" id="pickMode">' + ICON.check + '<span class="label">Seleccionar</span></button>';
     h += '<button class="btn" id="openSel">' + ICON.heart.replace('<svg', '<svg fill="none" stroke="currentColor" stroke-width="1.6"') + '<span class="label">Selección</span> <span class="fav-count" id="favCount">0</span></button>';
-    if (d.downloads && d.folderUrl) h += '<a class="btn solid" href="' + esc(d.folderUrl) + '" target="_blank" rel="noopener">' + ICON.dl + '<span class="label">Descargar todo</span></a>';
+    if (d.downloads) h += '<button class="btn solid" id="dlAll">' + ICON.dl + '<span class="label">Descargar todo</span></button>';
     h += '</div></div></div>';
 
     h += '<main id="galeria"><div class="intro"><p>Gracias por confiar en nosotros. Aquí encontrarás el material final de tu proyecto, listo para ver, seleccionar y descargar.</p>';
@@ -313,6 +356,10 @@ var BOOT = {
     layout(true);
     updateFavUI();
     document.getElementById('openSel').onclick = openDrawer;
+    if (d.downloads){
+      document.getElementById('pickMode').onclick = function(){ setPickMode(!pickMode); };
+      document.getElementById('dlAll').onclick = function(){ downloadMany(state.flat); };
+    }
     spyTabs();
   }
 
@@ -339,7 +386,9 @@ var BOOT = {
         var hb = document.createElement('button'); hb.className = 'heart' + (state.favs[it.id] ? ' on' : ''); hb.title = 'Agregar a mi selección'; hb.innerHTML = ICON.heart;
         hb.onclick = function(e){ e.stopPropagation(); toggleFav(it.id); };
         t.appendChild(hb);
-        t.onclick = function(){ openLb(it._i); };
+        var ck = document.createElement('span'); ck.className = 'check'; ck.innerHTML = ICON.tick; t.appendChild(ck);
+        if (picked[it.id]) t.classList.add('picked');
+        t.onclick = function(){ if (pickMode) togglePick(it.id); else openLb(it._i); };
         cols[k % n].appendChild(t);
       });
     });
@@ -392,6 +441,111 @@ var BOOT = {
     }).catch(function(){ btn.disabled = false; msg.textContent = 'No se pudo enviar. Intenta de nuevo.'; });
   };
 
+  /* ---------- Selección y descargas (directo, sin pasar por Drive) ---------- */
+  var pickMode = false, picked = {};
+  var selbar = document.getElementById('selbar');
+  function setPickMode(on){
+    pickMode = on; if (!on) picked = {};
+    document.body.classList.toggle('sel-mode', on);
+    selbar.classList.toggle('show', on);
+    updatePickUI();
+  }
+  function togglePick(id){ if (picked[id]) delete picked[id]; else picked[id] = 1; updatePickUI(); }
+  function updatePickUI(){
+    var n = Object.keys(picked).length;
+    document.querySelectorAll('.tile').forEach(function(t){ t.classList.toggle('picked', !!picked[state.flat[+t.dataset.i].id]); });
+    document.getElementById('pickCount').textContent = n + (n === 1 ? ' seleccionada' : ' seleccionadas');
+    document.getElementById('pickAll').textContent = n === state.flat.length ? 'Ninguna' : 'Todas';
+    document.getElementById('pickDl').disabled = !n;
+  }
+  document.getElementById('pickAll').onclick = function(){
+    if (Object.keys(picked).length === state.flat.length) picked = {};
+    else state.flat.forEach(function(it){ picked[it.id] = 1; });
+    updatePickUI();
+  };
+  document.getElementById('pickCancel').onclick = function(){ setPickMode(false); };
+  document.getElementById('pickDl').onclick = function(){
+    var items = state.flat.filter(function(it){ return picked[it.id]; });
+    downloadMany(items);
+  };
+
+  function origUrl(id){ return 'https://lh3.googleusercontent.com/d/' + id + '=s0-d'; }
+  function directUrl(id){ return 'https://drive.usercontent.google.com/download?id=' + id + '&export=download&confirm=t'; }
+  function fetchOriginal(it){
+    return fetch(origUrl(it.id), { credentials: 'omit' }).then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); });
+  }
+  function saveBlob(blob, name){
+    var u = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = u; a.download = name; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+  }
+  function downloadOne(it){
+    if (it.type === 'video'){ window.open(directUrl(it.id), '_blank'); return; }
+    toast('Descargando ' + it.name + '…');
+    fetchOriginal(it).then(function(b){ saveBlob(b, it.name); }).catch(function(){ window.open(directUrl(it.id), '_blank'); });
+  }
+  function loadZipLib(){
+    if (window.JSZip) return Promise.resolve(window.JSZip);
+    return new Promise(function(res, rej){
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+      s.onload = function(){ res(window.JSZip); }; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  var prog = document.getElementById('progress');
+  function progress(title, text, pct){
+    prog.classList.add('show');
+    document.getElementById('progTitle').textContent = title;
+    document.getElementById('progText').textContent = text || '';
+    document.getElementById('progFill').style.width = (pct || 0) + '%';
+  }
+  document.getElementById('progClose').onclick = function(){ prog.classList.remove('show'); };
+  function finish(title, text, vids){
+    progress(title, text, 100);
+    var box = document.getElementById('progVids');
+    box.innerHTML = (vids || []).map(function(v){ return '<a class="btn" href="' + directUrl(v.id) + '" target="_blank" rel="noopener">' + ICON.dl + ' ' + esc(v.name) + '</a>'; }).join('');
+    document.getElementById('progClose').style.display = '';
+  }
+  function downloadMany(items){
+    if (!items.length) return;
+    if (items.length === 1) return downloadOne(items[0]);
+    var imgs = items.filter(function(i){ return i.type === 'image'; });
+    var vids = items.filter(function(i){ return i.type === 'video'; });
+    document.getElementById('progClose').style.display = 'none';
+    document.getElementById('progVids').innerHTML = '';
+    if (!imgs.length) return finish('Videos', 'Toca cada video para descargarlo.', vids);
+    var multi = state.data.sections.length > 1, done = 0, failed = 0;
+    progress('Preparando descarga', '0 de ' + imgs.length + ' fotos', 0);
+    loadZipLib().then(function(JSZip){
+      var zip = new JSZip(), queue = imgs.slice(), used = {};
+      function worker(){
+        var it = queue.shift(); if (!it) return Promise.resolve();
+        return fetchOriginal(it).then(function(b){
+          var sec = state.data.sections[it._sec].title, path = (multi && sec ? sec + '/' : '') + it.name;
+          while (used[path]) path = path.replace(/(\.[^.]+)?$/, '-1$1');
+          used[path] = 1; zip.file(path, b, { binary: true });
+        }).catch(function(){ failed++; }).then(function(){
+          done++; progress('Preparando descarga', done + ' de ' + imgs.length + ' fotos', Math.round(done / imgs.length * 90));
+          return worker();
+        });
+      }
+      return Promise.all([worker(), worker(), worker(), worker()]).then(function(){
+        progress('Comprimiendo…', 'Un momento, casi listo.', 95);
+        return zip.generateAsync({ type: 'blob', compression: 'STORE' });
+      }).then(function(blob){
+        var name = (state.data.project || state.data.client || BOOT.slug || 'galeria').replace(/[\\/:*?"<>|·]+/g, '').replace(/\s+/g, ' ').trim() + ' - Pixel Nest.zip';
+        saveBlob(blob, name);
+        if (pickMode) setPickMode(false);
+        var msg = 'Se descargó un archivo .zip con ' + (imgs.length - failed) + ' fotos en resolución original.';
+        if (failed) msg += ' ' + failed + ' no se pudieron incluir; descárgalas una por una.';
+        if (vids.length) msg += ' Los videos se descargan por separado:';
+        finish('Descarga lista', msg, vids);
+      });
+    }).catch(function(){ finish('No se pudo preparar la descarga', 'Revisa tu conexión e intenta de nuevo.', []); });
+  }
+
   /* ---------- Lightbox ---------- */
   var lb = document.getElementById('lb'), media = document.getElementById('lbMedia');
   function openLb(i){ state.idx = i; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; showLb(); }
@@ -412,14 +566,13 @@ var BOOT = {
     document.getElementById('lbName').textContent = (d.sections[it._sec].title ? d.sections[it._sec].title + ' · ' : '') + it.name;
     document.getElementById('lbCount').textContent = (state.idx + 1) + ' / ' + state.flat.length;
     document.getElementById('lbFav').classList.toggle('on', !!state.favs[it.id]);
-    var a = document.getElementById('lbDl');
-    a.style.display = d.downloads ? '' : 'none';
-    a.href = dl(it.id);
+    document.getElementById('lbDl').style.display = d.downloads ? '' : 'none';
   }
   function step(k){ state.idx = (state.idx + k + state.flat.length) % state.flat.length; showLb(); }
   document.getElementById('lbPrev').onclick = function(e){ e.stopPropagation(); step(-1); };
   document.getElementById('lbNext').onclick = function(e){ e.stopPropagation(); step(1); };
   document.getElementById('lbClose').onclick = closeLb;
+  document.getElementById('lbDl').onclick = function(){ downloadOne(state.flat[state.idx]); };
   document.getElementById('lbFav').onclick = function(){ toggleFav(state.flat[state.idx].id); };
   document.getElementById('lbStage').addEventListener('click', function(e){ if (e.target.id === 'lbStage') closeLb(); });
   document.addEventListener('keydown', function(e){
