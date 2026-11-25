@@ -96,7 +96,7 @@
   footer small{display:block;color:var(--muted);font-size:11.5px;margin-top:14px;line-height:1.6;max-width:420px}
 
   /* ---------- Lightbox ---------- */
-  .lb{position:fixed;inset:0;z-index:100;background:rgba(10,10,10,.97);color:#fff;display:none;flex-direction:column}
+  .lb{position:fixed;inset:0;z-index:100;background:#0b0b0b;color:#fff;display:none;flex-direction:column}
   .lb.open{display:flex}
   .lb-top,.lb-bottom{display:flex;align-items:center;justify-content:space-between;padding:16px clamp(16px,3vw,32px);gap:16px;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
   .lb-top .name{opacity:.55;letter-spacing:.08em;text-transform:none;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -114,6 +114,16 @@
   .lb-nav svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:1.2}
   .lb-prev{left:clamp(4px,1.5vw,20px)} .lb-next{right:clamp(4px,1.5vw,20px)}
   .lb-bottom{justify-content:center;opacity:.6}
+  .lb-note{display:none;padding:0 clamp(16px,3vw,32px) 14px}
+  .lb-note.open{display:block}
+  .lb-note textarea{display:block;width:min(720px,100%);margin:0 auto;min-height:62px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;padding:12px 14px;font:inherit;font-size:14px;line-height:1.45;resize:vertical;outline:none}
+  .lb-note textarea:focus{border-color:rgba(255,255,255,.7)}
+  .lb-note textarea::placeholder{color:rgba(255,255,255,.45)}
+  .lb-note small{display:block;width:min(720px,100%);margin:6px auto 0;font-size:11.5px;color:rgba(255,255,255,.45);letter-spacing:.02em}
+  .lb-tools .has-note svg{fill:#fff}
+  .noted{position:absolute;left:10px;bottom:10px;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.92);color:var(--ink);font-size:11px;padding:5px 9px;border-radius:14px;pointer-events:none}
+  .noted svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7}
+  .tile.has-note .noted{display:flex}
   @media (max-width:640px){.lb-nav{display:none}}
 
   /* ---------- Panel de selección ---------- */
@@ -123,10 +133,16 @@
   .drawer .panel{position:absolute;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--paper);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.12)}
   .panel header{display:flex;justify-content:space-between;align-items:center;padding:24px 26px;border-bottom:1px solid var(--line)}
   .panel header h3{font-family:var(--serif);font-weight:400;font-size:28px}
-  .panel .thumbs{flex:1;overflow:auto;padding:18px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-content:start}
-  .panel .thumbs div{position:relative;aspect-ratio:1;background:#e9e6e0 center/cover}
-  .panel .thumbs button{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);font-size:13px;line-height:22px}
-  .panel .empty{grid-column:1/-1;color:var(--muted);font-size:14px;line-height:1.6;padding:20px 0}
+  .panel .thumbs{flex:1;overflow:auto;padding:18px 26px;display:flex;flex-direction:column;gap:14px}
+  .sel-item{display:flex;gap:12px;align-items:flex-start;position:relative;padding-right:26px}
+  .sel-item .ph{width:88px;height:66px;flex:none;background:#e9e6e0 center/cover;cursor:pointer}
+  .sel-item .meta{flex:1;min-width:0}
+  .sel-item b{display:block;font-size:11.5px;font-weight:500;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sel-item textarea{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;padding:8px 10px;font:inherit;font-size:13px;line-height:1.4;resize:vertical;outline:none}
+  .sel-item textarea:focus{border-color:var(--ink)}
+  .sel-item .rm{position:absolute;top:0;right:0;width:22px;height:22px;font-size:15px;color:var(--muted)}
+  .panel .empty{color:var(--muted);font-size:14px;line-height:1.6;padding:20px 0}
+  .panel .hint{font-size:12.5px;color:var(--muted);line-height:1.5;padding:14px 26px 0}
   .panel .send{padding:20px 26px 26px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
   .panel textarea{width:100%;min-height:84px;border:1px solid var(--line);background:#fff;padding:12px;font:inherit;font-size:14px;resize:vertical;outline:none}
   .panel textarea:focus{border-color:var(--ink)}
@@ -177,6 +193,7 @@
     <span class="name" id="lbName"></span>
     <div class="lb-tools">
       <button id="lbFav" title="Agregar a mi selección"><svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg></button>
+      <button id="lbNote" title="Agregar un comentario"><svg viewBox="0 0 24 24"><path d="M4.5 5.5h15v10h-8l-4.5 3.5v-3.5h-2.5z"/></svg></button>
       <button id="lbDl" title="Descargar"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg></button>
       <button id="lbClose" title="Cerrar (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
@@ -186,6 +203,10 @@
     <div id="lbMedia" style="display:contents"></div>
     <button class="lb-nav lb-next" id="lbNext" aria-label="Siguiente"><svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></svg></button>
   </div>
+  <div class="lb-note" id="lbNoteBox">
+    <textarea id="lbNoteText" placeholder="Comentario para esta foto (ej. quitar el cable, más cálida, recortar a vertical…)"></textarea>
+    <small>Se guarda solo y la foto se agrega a tu selección.</small>
+  </div>
   <div class="lb-bottom"><span id="lbCount"></span></div>
 </div>
 
@@ -193,9 +214,10 @@
   <div class="shade" data-close></div>
   <div class="panel">
     <header><h3>Mi selección</h3><button data-close class="btn" style="padding:8px 12px">Cerrar</button></header>
+    <p class="hint">Puedes escribir un comentario en cada foto: retoques, recortes o cualquier observación para la edición final.</p>
     <div class="thumbs" id="selThumbs"></div>
     <div class="send">
-      <textarea id="selNote" placeholder="¿Algún comentario? (opcional) — por ejemplo, para qué uso son estas fotos."></textarea>
+      <textarea id="selNote" placeholder="Comentario general (opcional): para qué uso son las fotos, fecha que las necesitas…"></textarea>
       <button class="btn solid" id="selSend">Enviar selección</button>
       <div class="msg" id="selMsg"></div>
     </div>
@@ -232,7 +254,7 @@ var BOOT = {
 
 (function(){
   'use strict';
-  var state = { data:null, flat:[], idx:0, favs:{}, pw:'' };
+  var state = { data:null, flat:[], idx:0, favs:{}, notes:{}, pw:'' };
   var app = document.getElementById('app');
 
   /* ---------- Utilidades ---------- */
@@ -246,7 +268,7 @@ var BOOT = {
   function call(fn, args){
     if (window.DEMO_API) return new Promise(function(resolve){ setTimeout(function(){ resolve(window.DEMO_API(fn, args)); }, 350); });
     var body = fn === 'sendSelection'
-      ? { action: 'select', g: args[0], pw: args[1], ids: args[2], note: args[3] }
+      ? { action: 'select', g: args[0], pw: args[1], ids: args[2], note: args[3], notes: args[4] || {} }
       : { action: 'get', g: args[0], pw: args[1] };
     // Anónimo a propósito: sin cookies de Google, así no falla con varias cuentas iniciadas.
     return fetch(API_URL, { method: 'POST', credentials: 'omit', redirect: 'follow',
@@ -259,7 +281,8 @@ var BOOT = {
     dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>',
     play:'<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>',
     check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/></svg>',
-    tick:'<svg viewBox="0 0 24 24"><path d="m5.5 12.5 4.2 4.2 8.8-9"/></svg>'
+    tick:'<svg viewBox="0 0 24 24"><path d="m5.5 12.5 4.2 4.2 8.8-9"/></svg>',
+    note:'<svg viewBox="0 0 24 24"><path d="M4.5 5.5h15v10h-8l-4.5 3.5v-3.5h-2.5z"/></svg>'
   };
 
   /* ---------- Carga ---------- */
@@ -274,6 +297,7 @@ var BOOT = {
       state.data = d;
       document.title = (d.project || d.client || 'Galería') + ' · ' + BOOT.brand;
       state.favs = store('pn_fav_' + BOOT.slug) || {};
+      state.notes = store('pn_note_' + BOOT.slug) || {};
       render();
     }).catch(function(){ renderState('No pudimos cargar la galería', 'Revisa tu conexión e intenta de nuevo.'); });
   }
@@ -333,8 +357,13 @@ var BOOT = {
     if (d.downloads) h += '<button class="btn solid" id="dlAll">' + ICON.dl + '<span class="label">Descargar todo</span></button>';
     h += '</div></div></div>';
 
-    h += '<main id="galeria"><div class="intro"><p>Gracias por confiar en nosotros. Aquí encontrarás el material final de tu proyecto, listo para ver, seleccionar y descargar.</p>';
-    h += '<span class="eyebrow">Marca con ♡ tus favoritas y envíanos tu selección</span></div>';
+    if (d.downloads){
+      h += '<main id="galeria"><div class="intro"><p>Gracias por confiar en nosotros. Aquí encontrarás el material final de tu proyecto, listo para ver, seleccionar y descargar.</p>';
+      h += '<span class="eyebrow">Marca con ♡ tus favoritas, deja comentarios y envíanos tu selección</span></div>';
+    } else {
+      h += '<main id="galeria"><div class="intro"><p>Estas son las fotografías de tu proyecto antes de la edición final. Elige tus favoritas y cuéntanos cualquier detalle que quieras en cada una.</p>';
+      h += '<span class="eyebrow">Marca con ♡ las que quieres editadas · toca una foto para dejar un comentario · envía tu selección</span></div>';
+    }
     d.sections.forEach(function(s, i){
       h += '<section class="sec" id="sec-' + i + '">';
       if (multi) h += '<div class="sec-head"><h2>' + esc(s.title || 'Galería') + '</h2><span class="eyebrow">' + s.items.length + '</span></div>';
@@ -387,6 +416,7 @@ var BOOT = {
         hb.onclick = function(e){ e.stopPropagation(); toggleFav(it.id); };
         t.appendChild(hb);
         var ck = document.createElement('span'); ck.className = 'check'; ck.innerHTML = ICON.tick; t.appendChild(ck);
+        var nb = document.createElement('span'); nb.className = 'noted'; nb.innerHTML = ICON.note + 'Comentario'; t.appendChild(nb);
         if (picked[it.id]) t.classList.add('picked');
         t.onclick = function(){ if (pickMode) togglePick(it.id); else openLb(it._i); };
         cols[k % n].appendChild(t);
@@ -415,7 +445,7 @@ var BOOT = {
   function updateFavUI(){
     var n = Object.keys(state.favs).filter(function(id){ return state.flat.some(function(x){ return x.id === id; }); }).length;
     var c = document.getElementById('favCount'); if (c) c.textContent = n;
-    document.querySelectorAll('.tile').forEach(function(t){ var it = state.flat[+t.dataset.i]; t.querySelector('.heart').classList.toggle('on', !!state.favs[it.id]); });
+    document.querySelectorAll('.tile').forEach(function(t){ var it = state.flat[+t.dataset.i]; t.querySelector('.heart').classList.toggle('on', !!state.favs[it.id]); t.classList.toggle('has-note', !!state.notes[it.id]); });
     if (lb.classList.contains('open')) document.getElementById('lbFav').classList.toggle('on', !!state.favs[state.flat[state.idx].id]);
     if (drawer.classList.contains('open')) renderDrawer();
   }
@@ -427,19 +457,49 @@ var BOOT = {
     var box = document.getElementById('selThumbs');
     var items = state.flat.filter(function(it){ return state.favs[it.id]; });
     if (!items.length){ box.innerHTML = '<div class="empty">Aún no has marcado favoritas. Toca el ♡ sobre cualquier foto para agregarla aquí.</div>'; return; }
-    box.innerHTML = items.map(function(it){ return '<div style="background-image:url(\'' + img(it.id, 300) + '\')" title="' + esc(it.name) + '"><button data-id="' + esc(it.id) + '" aria-label="Quitar">×</button></div>'; }).join('');
-    box.querySelectorAll('button').forEach(function(b){ b.onclick = function(){ toggleFav(b.dataset.id); }; });
+    box.innerHTML = items.map(function(it){
+      return '<div class="sel-item"><div class="ph" data-i="' + it._i + '" style="background-image:url(\'' + img(it.id, 300) + '\')"></div>' +
+        '<div class="meta"><b>' + esc(it.name) + '</b><textarea data-id="' + esc(it.id) + '" placeholder="Comentario para esta foto (opcional)">' + esc(state.notes[it.id] || '') + '</textarea></div>' +
+        '<button class="rm" data-id="' + esc(it.id) + '" aria-label="Quitar de la selección">×</button></div>';
+    }).join('');
+    box.querySelectorAll('.rm').forEach(function(b){ b.onclick = function(){ toggleFav(b.dataset.id); }; });
+    box.querySelectorAll('textarea').forEach(function(ta){ ta.oninput = function(){ setNote(ta.dataset.id, ta.value, true); }; });
+    box.querySelectorAll('.ph').forEach(function(p){ p.onclick = function(){ drawer.classList.remove('open'); openLb(+p.dataset.i); }; });
   }
   document.getElementById('selSend').onclick = function(){
     var ids = state.flat.filter(function(it){ return state.favs[it.id]; }).map(function(it){ return it.id; });
     var msg = document.getElementById('selMsg'), btn = this;
     if (!ids.length){ msg.textContent = 'Marca al menos una foto.'; return; }
     btn.disabled = true; msg.textContent = 'Enviando…';
-    call('sendSelection', [BOOT.slug, state.pw, ids, document.getElementById('selNote').value]).then(function(r){
+    var notes = {}; ids.forEach(function(id){ if (state.notes[id]) notes[id] = state.notes[id]; });
+    call('sendSelection', [BOOT.slug, state.pw, ids, document.getElementById('selNote').value, notes]).then(function(r){
       btn.disabled = false;
       msg.textContent = r && r.ok ? '¡Listo! Recibimos tu selección de ' + r.count + ' archivos.' : 'No se pudo enviar. Intenta de nuevo.';
     }).catch(function(){ btn.disabled = false; msg.textContent = 'No se pudo enviar. Intenta de nuevo.'; });
   };
+
+  /* ---------- Comentarios por foto ---------- */
+  var noteT;
+  function setNote(id, text, fromDrawer){
+    text = String(text || '').slice(0, 1000);
+    if (text.trim()) state.notes[id] = text; else delete state.notes[id];
+    if (text.trim() && !state.favs[id]){ state.favs[id] = 1; store('pn_fav_' + BOOT.slug, state.favs); }
+    clearTimeout(noteT);
+    noteT = setTimeout(function(){ store('pn_note_' + BOOT.slug, state.notes); }, 300);
+    document.querySelectorAll('.tile').forEach(function(t){ var it = state.flat[+t.dataset.i]; t.classList.toggle('has-note', !!state.notes[it.id]); t.querySelector('.heart').classList.toggle('on', !!state.favs[it.id]); });
+    var c = document.getElementById('favCount'); if (c) c.textContent = Object.keys(state.favs).filter(function(k){ return state.flat.some(function(x){ return x.id === k; }); }).length;
+    if (lb.classList.contains('open')){
+      var cur = state.flat[state.idx];
+      document.getElementById('lbFav').classList.toggle('on', !!state.favs[cur.id]);
+      document.getElementById('lbNote').classList.toggle('has-note', !!state.notes[cur.id]);
+    }
+  }
+  var noteBox = document.getElementById('lbNoteBox'), noteText = document.getElementById('lbNoteText');
+  document.getElementById('lbNote').onclick = function(){
+    noteBox.classList.toggle('open');
+    if (noteBox.classList.contains('open')) noteText.focus();
+  };
+  noteText.oninput = function(){ setNote(state.flat[state.idx].id, noteText.value); };
 
   /* ---------- Selección y descargas (directo, sin pasar por Drive) ---------- */
   var pickMode = false, picked = {};
@@ -567,6 +627,10 @@ var BOOT = {
     document.getElementById('lbCount').textContent = (state.idx + 1) + ' / ' + state.flat.length;
     document.getElementById('lbFav').classList.toggle('on', !!state.favs[it.id]);
     document.getElementById('lbDl').style.display = d.downloads ? '' : 'none';
+    var nt = state.notes[it.id] || '';
+    document.getElementById('lbNoteText').value = nt;
+    document.getElementById('lbNote').classList.toggle('has-note', !!nt);
+    document.getElementById('lbNoteBox').classList.toggle('open', !!nt || !d.downloads);
   }
   function step(k){ state.idx = (state.idx + k + state.flat.length) % state.flat.length; showLb(); }
   document.getElementById('lbPrev').onclick = function(e){ e.stopPropagation(); step(-1); };
@@ -576,6 +640,9 @@ var BOOT = {
   document.getElementById('lbFav').onclick = function(){ toggleFav(state.flat[state.idx].id); };
   document.getElementById('lbStage').addEventListener('click', function(e){ if (e.target.id === 'lbStage') closeLb(); });
   document.addEventListener('keydown', function(e){
+    var typing = /^(TEXTAREA|INPUT)$/.test((e.target && e.target.tagName) || '');
+    if (typing && e.key !== 'Escape') return;
+    if (typing && e.key === 'Escape') { e.target.blur(); return; }
     if (!lb.classList.contains('open')) { if (e.key === 'Escape') drawer.classList.remove('open'); return; }
     if (e.key === 'Escape') closeLb();
     else if (e.key === 'ArrowRight') step(1);
@@ -583,7 +650,7 @@ var BOOT = {
     else if (e.key.toLowerCase() === 'f') toggleFav(state.flat[state.idx].id);
   });
   var sx = null, sy = null;
-  lb.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  lb.addEventListener('touchstart', function(e){ if (e.target.tagName === 'TEXTAREA') { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   lb.addEventListener('touchend', function(e){
     if (sx === null) return;
     var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
